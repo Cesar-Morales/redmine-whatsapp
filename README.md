@@ -23,5 +23,5 @@
 
 ### TODO LIST
 
-- [] Parcear informacion obtenida
-- [] Mejorar flujo de datos (investigar loadEarlierMessages)
+- [ ] Parcear informacion obtenida
+- [ ] Mejorar flujo de datos (investigar loadEarlierMessages)
