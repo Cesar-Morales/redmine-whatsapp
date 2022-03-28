@@ -6,8 +6,10 @@ const base64= require("base-64");
 require('dotenv').config('.env')
 
 // Optimizar
-let estado = false;
+let flowState = false;
 let caseNumber = 999;
+let issueText;
+let issueTitle;
 
 const username = process.env.USR
 const password = process.env.PASS
@@ -95,17 +97,18 @@ function startVenom(client) {
       // POST WELCOME MESSAGE
       if(caseNumber == 0){
         caseNumber = 1
-        estado = !estado
-        const mesaje1 = message.body
-        console.log(mesaje1)
-        client.sendText(message.from, "Muchas gracias, ahora por favor escriba ahora con detalles en un solo texto su incidente")
-      // POST POST WELCOME MESSAGE
+        flowState = !flowState
+        issueTitle = message.body
+        client.sendText(message.from, "Muchas gracias, ahora por favor escriba con detalles en un solo texto su incidente")
+      // POST-POST WELCOME MESSAGE
       }else if(caseNumber == 1){
         caseNumber = 999
-        estado = !estado
-        const mesaje2 = message.body
-        console.log(mesaje2)
+        flowState = !flowState
+        issueText = message.body
         client.sendText(message.from, "Uno de nuestros técnicos estará revisando su pedido.")
+        .then(() => {
+          client.sendText(message.from, "Issue Title: " + issueTitle + "\nIssue Text: " + issueText)
+        })
       }
       // UNTIL SOMEONE SAYS HELLO AGAIN IT DOESN'T WORK 
     }
