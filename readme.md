@@ -4,4 +4,4 @@
 
 ### Librerias
 
-            express nodemon cross-fetch
+            express nodemon cross-fetch base-64

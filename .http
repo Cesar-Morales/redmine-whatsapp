@@ -11,15 +11,5 @@ Content-Type: application/json
 GET http://localhost:8080/issues.xml
 
 
-####
-
-GET https://redmine.appdr.com/trackers.json
-Content-Type: application/json
-
-{
-    "X-Redmine-API-Key": "dd47afec1184c56a16e9ac1102fcc1b73ae32f61"
-}
-
-
 ###
 GET http://localhost:8080/users.xml
