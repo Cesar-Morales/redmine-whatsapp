@@ -1,30 +1,21 @@
-
-//https://www.redmine.org/projects/redmine/wiki/rest_api
-//https://www.redmine.org/projects/redmine/wiki/Rest_Users
-//https://www.redmine.org/projects/redmine/wiki/Rest_Issues
-
-//IMPORTANTE ACTIVAR REST web service en redmine
-
 const express = require('express');
 const venom = require('venom-bot');
 const bodyParser = require('body-parser')
 const fetch = require("node-fetch");
 const base64= require("base-64");
-const PORT = 3333;
+require('dotenv').config('.env')
 
-const username = 'user';
-const password = 'pass';
+// Optimizar
+let estado = false;
+let caseNumber = 999;
 
-venom
-  .create()
-  .then((client) => startVenom(client))
-  .catch((erro) => {
-    console.log(erro);
-  });
+const username = process.env.USR
+const password = process.env.PASS
+const PORT = process.env.PORT;
 
-function startVenom(client) {
-  
-  var app = express();
+
+function runServer(){
+  let app = express();
   app.use(bodyParser.json());
   app.listen(PORT, ()=>{
     console.log('Server running on port ' + PORT);
@@ -34,40 +25,55 @@ function startVenom(client) {
     const { number, message } = req.body;
     await client.sendText(number + '@c.us', message);
   });
+}
+
+
+venom
+  .create()
+  .then((client) => startVenom(client))
+  .catch((erro) => {
+    console.log(erro);
+  });
+
+function startVenom(client) {
+
+  runServer();
 
   client.onMessage(async(message) => {
-    if(message.body == 'issues'){
-      fetch('http://localhost:9900/issues.xml', { method:'GET'})
+    
+    // GET ISSUES
+    if(message.body.toUpperCase() == 'ISSUES'){
+      fetch('http://localhost:9900/issues.json')
       .then(response => response.text())
-      .then(text => /*client.sendText('NUM@c.us', text)*/console.log(text))
+      .then(text => console.log(text))      /*client.sendText('NUM@c.us', text)*/
       .catch(error => (console.log(error)));
       //await client.sendText(message.from + '@c.us', message);
-    } else if(message.body == 'users'){
-      const url = 'http://localhost:9900/users.xml';
+    } 
+    // GET A USERS (NEED AUTH)
+    else if(message.body.toUpperCase() == 'USERS'){
+      const url = 'http://localhost:9900/users.json';
       let headers = new fetch.Headers({'Authorization': 'Basic ' + base64.encode(username + ":" + password)});
-      fetch(url, {
-              headers: headers
-            })
-      .then(async response => {
+      fetch(url, { headers: headers })
+      .then(async(resp) => {
         try {
-          let xml = await response.text();
-          console.log(xml);
-          //client.sendText('NUM@c.us', xml);
+          let xml = await resp.text();
+          console.log(xml);               //send contact NUM ==> client.sendText('NUM@c.us', xml);
         } catch (error) {
           console.log('Error happened here!')
           console.error(error)
         }
       })
       .catch(error => (console.log(error)));
-    } else if(message.body == 'crear issue'){
-      const XMLBody = '<?xml version="1.0"?><issue><project_id>1</project_id><subject>Example2</subject><priority_id>1</priority_id><tracker>1</tracker></issue>'
-      let headers = new fetch.Headers({'Authorization': 'Basic ' + base64.encode(username + ":" + password)});
-      fetch('http://localhost:9900/issues.xml', { method:'POST', headers: headers, body: XMLBody})
-      .then(async response => {
+    } 
+    // CREATE A ISSUE (NEED AUTH)
+    else if(message.body.toUpperCase() == 'CREATE ISSUE'){
+      const jsonToSend = '{"issue": {"project_id": 1,"subject": "Example54","priority_id": 2}}'
+      let headers = new fetch.Headers({'Accept': 'application/json','Content-Type': 'application/json','Authorization': 'Basic ' + base64.encode(username + ":" + password)});
+      fetch('http://localhost:9900/issues.xml', { method:'POST', headers: headers, body: jsonToSend })
+      .then(async (resp) => {
         try {
-          let xml = await response.text();
-          console.log(xml);
-          //client.sendText(message.from,'Carga exitosa');
+          let xmlRecived = await resp.text();
+          console.log(xmlRecived);  //client.sendText(message.from,'Carga exitosa');
         } catch (error) {
           console.log('Error happened here!')
           console.error(error)
@@ -75,5 +81,34 @@ function startVenom(client) {
       })
       .catch(error => (console.log(error)));
     }
-  });
+    // WELCOME MESSAGE
+    else if(message.body.toUpperCase() == 'HOLA'){
+      client.sendText(message.from, "Bienvenido a nuestro sistema automatico de tickets, si desea levantar un incidente escriba incidente.")
+      .then(() => {
+        caseNumber = 0
+      })
+    // ISSUE MESSAGE
+    }else if(message.body.toUpperCase() == 'INCIDENTE'){
+      client.sendText(message.from, "Por favor escriba el titulo de su incidente.")
+    // ONLY WHEN SOMEONE SAYS HELLO CHANGE CASE NUMBER AND THIS WORK 
+    }else{
+      // POST WELCOME MESSAGE
+      if(caseNumber == 0){
+        caseNumber = 1
+        estado = !estado
+        const mesaje1 = message.body
+        console.log(mesaje1)
+        client.sendText(message.from, "Muchas gracias, ahora por favor escriba ahora con detalles en un solo texto su incidente")
+      // POST POST WELCOME MESSAGE
+      }else if(caseNumber == 1){
+        caseNumber = 999
+        estado = !estado
+        const mesaje2 = message.body
+        console.log(mesaje2)
+        client.sendText(message.from, "Uno de nuestros técnicos estará revisando su pedido.")
+      }
+      // UNTIL SOMEONE SAYS HELLO AGAIN IT DOESN'T WORK 
+    }
+  }
+  );
 }

@@ -7,9 +7,29 @@ Content-Type: application/json
 }
 
 ###
-
-GET http://localhost:8080/issues.xml
+GET http://localhost:9900/issues.xml
 
 
 ###
-GET http://localhost:8080/users.xml
+GET http://localhost:9900/users.xml
+
+
+###
+POST http://localhost:9900/issues.xml
+Content-Type: application/json
+Authorization: Basic admin:12345678
+
+{
+  "issue": {
+    "project_id": 1,
+    "subject": "Example2",
+    "priority_id": 2
+  }
+}
+
+###
+GET http://localhost:9900/issues.xml?issue_id=5
+
+
+###
+GET http://localhost:9900/issues.xml?assigned_to_id=me
